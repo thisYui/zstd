@@ -1,50 +1,26 @@
-﻿Zstd_Project/
-│
-├── src/                      # Mã nguồn chính của dự án
-│   ├── core/                 # Các thuật toán nén chính (LZ77, Huffman, FSE)
-│   │   ├── lz77.cpp          # Cài đặt thuật toán LZ77
-│   │   ├── huffman.cpp       # Cài đặt thuật toán Huffman
-│   │   └── fse.cpp           # Cài đặt thuật toán FSE (Entropy Coding)
-│   │
-│   ├── io/                   # Xử lý I/O (đọc/ghi tệp tin nén và giải nén)
-│   │   ├── file_io.cpp       # Các thao tác đọc/ghi tệp tin nén
-│   │   └── buffer.cpp        # Quản lý bộ đệm dữ liệu
-│   │
-│   ├── utils/                # Các tiện ích hỗ trợ khác (tạo mã, kiểm tra đầu vào, v.v.)
-│   │   ├── checksum.cpp      # Hàm tính checksum để kiểm tra tính toàn vẹn của dữ liệu
-│   │   └── bitstream.cpp     # Các thao tác về bitstream (mã hóa và giải mã bit)
-│   │
-│   ├── zstd_compressor.cpp   # Cài đặt chức năng nén chính của Zstd
-│   └── zstd_decompressor.cpp # Cài đặt chức năng giải nén chính của Zstd
-│
-├── include/                  # Thư mục chứa các tệp tiêu đề (header files)
-│   ├── lz77.h                # Định nghĩa các hàm và cấu trúc dữ liệu cho LZ77
-│   ├── huffman.h             # Định nghĩa các hàm và cấu trúc dữ liệu cho Huffman
-│   ├── fse.h                 # Định nghĩa các hàm và cấu trúc dữ liệu cho FSE
-│   ├── file_io.h             # Định nghĩa các hàm xử lý I/O tệp tin
-│   ├── buffer.h              # Định nghĩa cấu trúc dữ liệu bộ đệm
-│   ├── checksum.h            # Định nghĩa các hàm tính checksum
-│   ├── bitstream.h           # Định nghĩa các thao tác bitstream
-│   └── zstd.h                # Định nghĩa các hàm nén và giải nén của Zstd
-│
-├── test/                     # Thư mục chứa các bài kiểm tra
-│   ├── test_lz77.cpp         # Kiểm tra LZ77
-│   ├── test_huffman.cpp      # Kiểm tra Huffman
-│   ├── test_fse.cpp          # Kiểm tra FSE
-│   ├── test_compressor.cpp   # Kiểm tra nén Zstd
-│   └── test_decompressor.cpp # Kiểm tra giải nén Zstd
-│
-├── docs/                     # Tài liệu dự án (hướng dẫn sử dụng, tài liệu kỹ thuật)
-│   ├── README.md             # Tài liệu hướng dẫn sử dụng dự án
-│   ├── design.md             # Tài liệu thiết kế thuật toán
-│   └── performance.md        # Tài liệu tối ưu hóa và hiệu suất
-│
-├── examples/                 # Ví dụ minh họa sử dụng Zstd
-│   └── example_compress.cpp  # Ví dụ nén dữ liệu với Zstd
-│
-├── CMakeLists.txt            # Cấu hình build cho CMake (hoặc Makefile nếu dùng Make)
-└── LICENSE                   # Giấy phép dự án
+﻿# MyProject - zstd 
+Dự án này không thuộc vào chương trình học phần nào, mà là dự án của cá nhân tôi.
 
-[Dữ liệu gốc] → [Chia block] → [LZ77 nén] → [Huffman/FSE mã hóa] → [Ghi file]
-                     ↑                                   ↓
-               [Giải nén LZ77] ← [Giải mã Huffman/FSE] ← [Đọc file]
+## Description
+- Đây là một dự án nén dữ liệu mô phỏng zstd bằng cách sử dụng LZ77 và mã hóa Huffman. 
+- Dụ án này là dự án cá nhân được thực hiện bởi Nguyễn Quang Duy, sinh viên Trường Đại học Khoa học Tự nhiên, ĐHQG-TPHCM.
+
+## Features
+- Feature 1: Dụ án có thể thực hiện phéo nén LZ77 và mã hóa Huffman cho dữ liệu đầu vào.
+- Feature 2: Giao diện dòng lệnh.
+- Feature 3: Hỗ trợ nén và giải nén dữ liệu đối với folder/file thành một file .bin.
+
+## Requirements
+- Operating System: Linux / macOS / Windows
+- Programming Language: C++17 hoặc cao hơn.
+- Dependencies: Được code bằng Clion.
+
+## Attention
+- Thuật toán LZ77 có tốc độ nén không tốt cho dữ liệu ngẫu nhiên, nhưng tốc độ nén tốt cho dữ liệu lặp lại nhiều lần. Ngoài ra thuật toán chạy với tốc độ chậm có thể lên tới O(n^2) với n là kích thước của dữ liệu đầu vào.
+- Thuật toán Huffman sở hữu tốc độ cao hơn nhiều so với LZ77, người đọc có thể tham khảo kết hợp Huffman với nhiều loại thuật toán nén khác nhau khoogn chỉ riêng với LZ77.
+- Thuật toán sẽ có thời gian chờ lâu với dữ liệu trên 1MB do sử dụng LZ77.
+
+## Operating
+- Bước 1: Clone dự án về máy của bạn.
+- Bước 2: Chạy dự án bằng Clion hoặc các IDE/Text Editor khác. Chú ý: Đảm bảo rằng bạn đã cài đặt CMake và CMakeList.txt đã được tạo.
+- Bước 3: Có thể nén/giải nén dữ liệu, lưu ý cung cấp đuường dẫn cụ thể cho dữ liệu đầu vào. Ví dụ: "D:/source".
