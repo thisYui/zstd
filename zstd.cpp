@@ -89,11 +89,9 @@ bool zstd::compress(const std::string& inputFileName)
 		if (!entry.isDirectory)
 		{
 			// Nén dữ liệu
-			std::cout << "Data before compress: " << file.data.size() << std::endl;
 			std::vector<uint8_t> lz77Data = dataToLz77(file.data, entry.bufferLz77);
-			std::cout << "Data after compress: " << lz77Data.size() << std::endl;
 			std::vector<uint8_t> huffmanData = lz77ToHuffman(lz77Data, entry.origanalSize, entry.tree);
-			std::cout << "Data after huffman: " << huffmanData.size() << std::endl;
+
 			// Đưa các phần dữ liệu vào fileEntry
 			entry.sizeOfTree = entry.tree.size();
 			entry.sizeOfData = huffmanData.size();
@@ -147,12 +145,5 @@ bool zstd::decompress(const std::string& inputFileName)
 	}
 
 	// Ghi dữ liệu ra file
-	if (fileDecompress.write())
-	{
-		// Xóa file nén
-		fs::remove(inputFileName);
-		return true;
-	}
-
-	return false;
+	return fileDecompress.write();
 }

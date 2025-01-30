@@ -1,9 +1,55 @@
 ﻿#include "lz77.h"
-#include <iostream>
 
 // 4 bytes đánh dấu kết thúc 1 block tương đương 1 tuple
 // Chọn 4 bytes 0xff đảm bảo không thể xảy ra trường hợp trùng với dữ liệu nén
 const std::tuple<int, int, uint8_t> EOB = std::make_tuple(0xffff, 0xff, 0xff);  // End of block
+
+
+static std::vector<int> calculateZArray(const std::vector<uint8_t>& s)
+{
+	const int n = s.size();
+	std::vector<int> Z(n, 0);  // Mảng Z khởi tạo với tất cả giá trị bằng 0
+	int L = 0, R = 0;     // L và R giữ giới hạn của vùng tìm kiếm
+
+	// Duyệt qua các ký tự từ i = 1 đến i = n - 1
+	for (int i = 1; i < n; i++)
+	{
+		// Nếu i nằm ngoài phạm vi [L, R] thì gán L = R = i và bắt đầu tính Z[i]
+		if (i > R)
+		{
+			L = R = i;
+			while (R < n && s[R] == s[R - L])
+			{
+				++R;
+			}
+			Z[i] = R - L;
+			--R;
+		}
+		else
+		{
+			// Nếu i nằm trong phạm vi [L, R]
+			int k = i - L;
+			// Nếu Z[k] < R - i + 1, ta có thể dùng Z[k]
+			if (Z[k] < R - i + 1)
+			{
+				Z[i] = Z[k];
+			}
+			else
+			{
+				// Nếu không, cần tính Z[i] mới
+				L = i;
+				while (R < n && s[R] == s[R - L])
+				{
+					++R;
+				}
+				Z[i] = R - L;
+				--R;
+			}
+		}
+	}
+
+	return Z;
+}
 
 std::vector<std::tuple<int, int, uint8_t>> lz77::compress(
     const std::vector<uint8_t>& input, 
@@ -20,9 +66,7 @@ std::vector<std::tuple<int, int, uint8_t>> lz77::compress(
 	{
 		std::vector<uint8_t> searchBuffer;
 		std::vector<uint8_t> lookaheadBuffer;
-		int a[15] = { 0 };
-		int z = 0;
-		int max = 0;
+
 		// Duyệt qua từng byte trong block
 		for (size_t i = 0; i < block.size() || !lookaheadBuffer.empty();)
 		{
@@ -44,11 +88,6 @@ std::vector<std::tuple<int, int, uint8_t>> lz77::compress(
 			int length = std::get<1>(match);		
 			uint8_t nextByte = std::get<2>(match);
 
-			if (length < 15) a[length]++;
-			else z++;
-
-			if (length > max) max = length;
-
 			// Cập nhật searchBuffer
 			for (int j = 0; j < length; j++)
 			{
@@ -61,13 +100,6 @@ std::vector<std::tuple<int, int, uint8_t>> lz77::compress(
 				std::min(length + 1, static_cast<int>(lookaheadBuffer.size())));
 
 		}
-
-		for (int i = 0; i < 15; i++)
-		{
-			std::cout << i << ": " << a[i] << "   ";
-		} std::cout << std::endl;
-		std::cout << "more 15: " << z << "        ";
-		std::cout << "max: " << max << std::endl;
 
 		// Thêm EOT vào cuối block
 		compressedData.push_back(EOB);
@@ -152,100 +184,40 @@ std::vector<std::vector<std::tuple<int, int, uint8_t>>> lz77::getBlockData(const
 	return result;
 }
 
-//std::tuple<int, int, uint8_t> lz77::createMatch(
-//    const std::vector<uint8_t>& searchBuffer,
-//    const std::vector<uint8_t>& lookaheadBuffer)
-//{
-//    int bestOffset = 0;  // Vị trí bắt đầu của chuỗi con trùng khớp tốt nhất
-//    int bestLength = 0;   // Độ dài chuỗi con trùng khớp tốt nhất
-//    uint8_t nextByte = 0; // Ký tự tiếp theo trong lookaheadBuffer
-//
-//    // Duyệt qua searchBuffer và so sánh với lookaheadBuffer
-//	for (size_t i = 0; i < searchBuffer.size(); i++)
-//	{
-//		int offset = i;
-//		int length = 0;
-//
-//		// So sánh chuỗi con từ vị trí i trong searchBuffer với chuỗi con từ vị trí 0 trong lookaheadBuffer
-//		while (i < searchBuffer.size() && 
-//			length < lookaheadBuffer.size() && 
-//			searchBuffer[i] == lookaheadBuffer[length])
-//		{
-//			i++;
-//			length++;
-//		}
-//
-//		// Cập nhật offset và length tốt nhất
-//		if (length > bestLength)
-//		{
-//			bestOffset = offset;
-//			bestLength = length;
-//		}
-//
-//		// Đặt lại vị trí i
-//		i = offset;
-//	}
-//
-//	if (bestLength < lookaheadBuffer.size())
-//	{
-//		nextByte = lookaheadBuffer[bestLength];
-//	}
-//	else
-//	{
-//		bestLength = lookaheadBuffer.size() - 1;
-//		nextByte = lookaheadBuffer.back();
-//	}
-//
-//    // Trả về tuple (offset, length, nextByte)
-//    return std::make_tuple(bestOffset, bestLength, nextByte);
-//}
-
 std::tuple<int, int, uint8_t> lz77::createMatch(
 	const std::vector<uint8_t>& searchBuffer,
 	const std::vector<uint8_t>& lookaheadBuffer)
 {
+	std::vector<uint8_t> merge;
+	merge.insert(merge.end(), lookaheadBuffer.begin(), lookaheadBuffer.end());
+	merge.insert(merge.end(), searchBuffer.begin(), searchBuffer.end());
+	std::vector<int> Z = calculateZArray(merge);
+
 	int bestOffset = 0;  // Vị trí bắt đầu của chuỗi con trùng khớp tốt nhất
 	int bestLength = 0;  // Độ dài chuỗi con trùng khớp tốt nhất
 	uint8_t nextByte = lookaheadBuffer.empty() ? 0 : lookaheadBuffer[0];
 
-	// Sử dụng sliding window để tìm kiếm chuỗi trùng khớp
-	for (size_t i = 0; i < searchBuffer.size(); ++i)
-	{
-		int currentLength = 0;
 
-		// So khớp chuỗi trong phạm vi của lookaheadBuffer
-		while (currentLength < static_cast<int>(lookaheadBuffer.size()) &&
-			i + currentLength < searchBuffer.size() &&
-			searchBuffer[i + currentLength] == lookaheadBuffer[currentLength])
+	const int n = lookaheadBuffer.size();
+	for (int i = n; i < Z.size(); i++)  // Bỏ quuas lookaheadBuffer duyệt từ n
+	{
+		if (Z[i] > bestLength)
 		{
-			++currentLength;
+			bestLength = Z[i];
+			bestOffset = i - n;
 		}
 
-		// Cập nhật chuỗi con tốt nhất nếu cần
-		if (currentLength > bestLength)
+		if (Z[i] >= n)
 		{
-			bestOffset = static_cast<int>(i);
-			bestLength = currentLength;
-
-			// Cập nhật ký tự tiếp theo nếu còn trong lookaheadBuffer
-			if (bestLength < static_cast<int>(lookaheadBuffer.size()))
-			{
-				nextByte = lookaheadBuffer[bestLength];
-			}
+			return std::make_tuple(
+				bestOffset,
+				n - 1,
+				lookaheadBuffer.back());
 		}
 	}
 
-	if (bestLength < lookaheadBuffer.size())
-	{
-		nextByte = lookaheadBuffer[bestLength];
-	}
-	else
-	{
-		bestLength = lookaheadBuffer.size() - 1;
-		nextByte = lookaheadBuffer.back();
-	}
+	nextByte = lookaheadBuffer[bestLength];
 
-	// Trả về tuple (offset, length, nextByte)
 	return std::make_tuple(bestOffset, bestLength, nextByte);
 }
 
