@@ -17,7 +17,7 @@ Dự án này không thuộc vào chương trình học phần nào, mà là d�
 
 ## Attention
 - Thuật toán LZ77 có tốc độ nén không tốt cho dữ liệu ngẫu nhiên, nhưng tốc độ nén tốt cho dữ liệu lặp lại nhiều lần. Ngoài ra thuật toán chạy với tốc độ chậm có thể lên tới O(n^2) với n là kích thước của dữ liệu đầu vào.
-- Thuật toán Huffman sở hữu tốc độ cao hơn nhiều so với LZ77, người đọc có thể tham khảo kết hợp Huffman với nhiều loại thuật toán nén khác nhau khoogn chỉ riêng với LZ77.
+- Thuật toán Huffman sở hữu tốc độ cao hơn nhiều so với LZ77, người đọc có thể tham khảo kết hợp Huffman với nhiều loại thuật toán nén khác nhau không chỉ riêng với LZ77.
 - Thuật toán sẽ có thời gian chờ lâu với dữ liệu trên 1MB do sử dụng LZ77.
 
 ## Operating
